@@ -19,7 +19,7 @@ $toilets_data = getData($public_wc, $toilets_data);
     <head>
         <meta charset="UTF-8">
         <title>Public Washrooms in Vancouver</title>
-		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPjo_cCYIkkWKcnfpPsGV4d7G5nQ5GqmA&callback=initMap&libraries=geometry&sensor=false" type="text/javascript"></script>
+		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPjo_cCYIkkWKcnfpPsGV4d7G5nQ5GqmA&callback=initMap&libraries=geometry" type="text/javascript"></script>
 		<style>
 			body {
 				margin: 0;
