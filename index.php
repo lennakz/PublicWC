@@ -138,7 +138,6 @@ $toilets_data = getData($public_wc, $toilets_data);
 						tMarkers.forEach(function(element) {
 							distances.push(google.maps.geometry.spherical.computeDistanceBetween(dMarkers[i].getPosition(), element.getPosition()));
 						});
-						//dInfoWindows[i].open(map, this);
 						index = distances.indexOf(Math.min.apply(window,distances));
 						lines[i] = new google.maps.Polyline({
 							path: [
