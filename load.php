@@ -7,20 +7,18 @@ function d($data)
 	echo '</pre>';
 }
 
-function getData()
+function getData($url, $output_file)
 {
-	$file = 'data.txt';
-	$data_url = 'ftp://webftp.vancouver.ca/OpenData/csv/public_washrooms.csv';
 	$counter = 0;
 	$keys = [];
-	$toilets = [];
+	$places = [];
 	
-	if (!file_exists($file))
+	if (!file_exists($output_file))
 	{
-		$fp = fopen($file, 'a+');
+		$fp = fopen($output_file, 'a+');
 		$ch = curl_init();
 
-		curl_setopt($ch, CURLOPT_URL, $data_url);
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_FILE, $fp);
 
@@ -29,7 +27,7 @@ function getData()
 		fclose($fp);
 	}
 	
-	if (($fp = fopen($file, 'r')) !== false)
+	if (($fp = fopen($output_file, 'r')) !== false)
 	{
 		while (($data = fgetcsv($fp)) !== false)
 		{
@@ -47,13 +45,13 @@ function getData()
 				$array[strtolower($keys[$k])] = $field;
 			}
 
-			$toilets[] = $array;
+			$places[] = $array;
 
 		}
 		fclose($fp);
 	}
 	
-	$toilets = json_encode($toilets);
+	$places = json_encode($places);
 	
-	return $toilets;
+	return $places;
 }

@@ -1,7 +1,15 @@
 <?php
 
 require 'load.php';
-$data = getData();
+
+$drinking_fountains = 'ftp://webftp.vancouver.ca/OpenData/csv/drinking_fountains.csv';
+$public_wc = 'ftp://webftp.vancouver.ca/OpenData/csv/public_washrooms.csv';
+
+$drinking_fountains_data = 'data/drinking.txt';
+$toilets_data = 'data/toilets.txt';
+
+$drinking_data = getData($drinking_fountains, $drinking_fountains_data);
+$toilets_data = getData($public_wc, $toilets_data);
 
 ?>
 
@@ -11,7 +19,7 @@ $data = getData();
     <head>
         <meta charset="UTF-8">
         <title>Public Washrooms in Vancouver</title>
-		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPjo_cCYIkkWKcnfpPsGV4d7G5nQ5GqmA&callback=initMap" type="text/javascript"></script>
+		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCPjo_cCYIkkWKcnfpPsGV4d7G5nQ5GqmA&callback=initMap&libraries=geometry&sensor=false" type="text/javascript"></script>
 		<style>
 			body {
 				margin: 0;
@@ -27,35 +35,50 @@ $data = getData();
 		<script>
 			
 			function initMap() {
-				var markers = [];
-				var infoWindows = [];
-				var data = <?=$data?>;
 				var vancouver = {lat: 49.2427, lng: -123.1207};
-				var icon = {
-					url: 'icon.png',
-					scaledSize: new google.maps.Size(25, 25), // scaled size
+				
+				var map = new google.maps.Map(document.getElementById('map'), {
+					zoom: 13,
+					center: vancouver
+				});
+				
+				var tMarkers = [];
+				var dMarkers = [];
+				
+				var tInfoWindows = [];
+				var dInfoWindows = [];
+				
+				var tData = <?=$toilets_data?>;
+				var dData = <?=$drinking_data?>;
+				
+				var tIcon = {
+					url: 'images/t-icon.png',
+					scaledSize: new google.maps.Size(20, 20), // scaled size
 					origin: new google.maps.Point(0,0), // origin
 					anchor: new google.maps.Point(0, 0) // anchor
 				};
-				var map = new google.maps.Map(document.getElementById('map'), {
-					zoom: 12,
-					center: vancouver
-				});
-				for (let i = 0; i < data.length; i++) {
-					var d = data[i];
+				var dIcon = {
+					url: 'images/d-icon.png',
+					scaledSize: new google.maps.Size(10, 10), // scaled size
+					origin: new google.maps.Point(0,0), // origin
+					anchor: new google.maps.Point(0, 0) // anchor
+				};
+				
+				for (let i = 0; i < tData.length; i++) {
+					var d = tData[i];
 					var latLng = new google.maps.LatLng(d.latitude, d.longitude);
-					markers[i] = new google.maps.Marker({
+					tMarkers[i] = new google.maps.Marker({
 						position: latLng,
 						map: map,
-						icon: icon
+						icon: tIcon
 					});
 					
-					infoWindows[i] = new google.maps.InfoWindow({
+					tInfoWindows[i] = new google.maps.InfoWindow({
 						content: 
 							'<table>' +
 								'<tr>' +
-									'<td width="30%"><img src="toilet.jpg" width=110 height=90></td>' +
-									'<td><h2>Welcome to Vancouver Toilets!<br>Hope you will enjoy your visit!<br>Good luck! <img src="poop.png" width=20 height=20></h2></td>' +
+									'<td width="30%"><img src="images/toilet.jpg" width=110 height=90></td>' +
+									'<td><h2>Welcome to Vancouver Toilets!<br>Hope you will enjoy your visit!<br>Good luck! <img src="images/poop.png" width=20 height=20></h2></td>' +
 								'</tr>' +
 								'<tr>' +
 									'<td><strong>Name</strong></td>' +
@@ -95,9 +118,47 @@ $data = getData();
 								'</tr>' +
 							'</table>'
 					});
-					markers[i].addListener('click', function() {
-						infoWindows.forEach(function(element) { element.close() });
-						infoWindows[i].open(map, this);
+					tMarkers[i].addListener('click', function() {
+						tInfoWindows.forEach(function(element) { element.close(); });
+						tInfoWindows[i].open(map, this);
+					});
+				};
+				var lines = [];
+				var lineState = false;
+				for (let i = 0; i < dData.length; i++) {
+					var d = dData[i];
+					var latLng = new google.maps.LatLng(d.latitude, d.longitude);
+					dMarkers[i] = new google.maps.Marker({
+						position: latLng,
+						map: map,
+						icon: dIcon
+					});
+					dMarkers[i].addListener('click', function() {
+						var distances = [];
+						tMarkers.forEach(function(element) {
+							distances.push(google.maps.geometry.spherical.computeDistanceBetween(dMarkers[i].getPosition(), element.getPosition()));
+						});
+						//dInfoWindows[i].open(map, this);
+						index = distances.indexOf(Math.min.apply(window,distances));
+						lines[i] = new google.maps.Polyline({
+							path: [
+								dMarkers[i].getPosition(), 
+								tMarkers[index].getPosition()
+							],
+							strokeColor: "#FF0000",
+							strokeOpacity: 1.0,
+							strokeWeight: 5,
+							geodesic: true,
+							map: map
+						});
+						if (lineState) {
+							lines[i].setMap(null);
+							lineState = false;
+						}
+						else {
+							lines[i].setMap(map);
+							lineState = true;
+						};
 					});
 				};
 			};
