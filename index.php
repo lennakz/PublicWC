@@ -158,7 +158,7 @@ $toilets_data = getData($public_wc, $toilets_data);
 							strokeWeight: 5,
 							radius: 100
 						});
-						circles[i].addListener('click', function() {
+						circles[i].addListener('click', function(e) {
 							this.setMap(null);
 							lines[i].setMap(null);
 						});
